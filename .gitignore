@@ -205,3 +205,9 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Ignore all data by default
+data/*
+
+# But track README to preserve folder structure
+!data/README.md
