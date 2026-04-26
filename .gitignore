@@ -211,3 +211,6 @@ data/*
 
 # But track README to preserve folder structure
 !data/README.md
+
+# OS generated files
+.DS_Store*
