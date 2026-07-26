@@ -83,28 +83,26 @@ features:
 
 # ---------------------------------------------------------------------
 # D-признаки: резолюция версий (02_feature_eda, §3)
+# Источник: reports/av_d_features.csv
 # ---------------------------------------------------------------------
 d_features:
-  # ВНИМАНИЕ: значения ниже — ОЖИДАНИЕ ПО EDA (плейсхолдер).
-  # Заменить фактическими после прогона AV (задача 1 бэклога, §7);
-  # артефакт AV: reports/av_d_features.csv
-  status: pending_av
-  resolution:          # raw | norm | excluded
-    D1:  norm
-    D2:  raw           # статус неясен по EDA — решит AV
-    D3:  raw
-    D4:  norm
-    D5:  raw
-    D6:  raw
-    D7:  raw
-    D8:  raw
-    D9:  excluded      # дубликат TransactionHour
-    D10: norm
-    D11: norm
-    D12: raw
-    D13: raw
-    D14: raw
-    D15: norm
+  status: applied_from_av
+  resolution:          # auc_raw / auc_norm
+    D1:  raw           # 0.539 / 0.914
+    D2:  raw           # 0.533 / 0.723
+    D3:  raw           # 0.530 / 0.882
+    D4:  excluded      # 0.625 / 0.819
+    D5:  excluded      # 0.550 / 0.837 
+    D6:  excluded      # 0.565 / 0.636
+    D7:  raw           # 0.527 / 0.573
+    D8:  raw           # 0.516 / 0.583
+    D9:  excluded      # 0.510 / 0.627 — исключён как дубль TransactionHour (02_feature_eda, §2)
+    D10: excluded      # 0.630 / 0.870
+    D11: excluded      # 0.594 / 0.729
+    D12: raw           # 0.516 / 0.594
+    D13: excluded      # 0.571 / 0.651
+    D14: excluded      # 0.564 / 0.631
+    D15: excluded      # 0.657 / 0.850
 
 # ---------------------------------------------------------------------
 # Производные категориальные: словари мапинга (02_feature_eda, §5).
