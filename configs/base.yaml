@@ -1,0 +1,193 @@
+# =====================================================================
+# base.yaml — общие для всех веток решения эксперимента.
+# Ветки (baseline.yaml, bloom.yaml, exact.yaml) наследуют этот файл
+# и переопределяют ТОЛЬКО блок extra_features.
+# Изменения этого файла — только по согласованию.
+# =====================================================================
+
+seed: 42
+
+paths:
+  data_dir: data
+  train_transaction: data/train_transaction.csv
+  train_identity: data/train_identity.csv
+  test_transaction: data/test_transaction.csv
+  test_identity: data/test_identity.csv
+  reports_dir: reports
+  experiments_log: reports/experiments.md
+
+# ---------------------------------------------------------------------
+# Признаки
+# ---------------------------------------------------------------------
+features:
+  target: isFraud
+
+  # Служебные колонки: используются для сплитов и оконных построений,
+  # ЗАПРЕЩЕНЫ как признаки модели. Тест на утечку читает этот список.
+  forbidden_as_features:
+    - TransactionID
+    - TransactionDT
+    - TransactionDay
+    - TransactionWeek
+    - MonthBlock
+    - D9              # дубликат TransactionHour (02_feature_eda, §2)
+
+  # Семейства колонок (разворачиваются кодом в списки имён)
+  families:
+    C:            {prefix: C,   range: [1, 14]}
+    V:            {prefix: V,   range: [1, 339]}    # все 339, редукция отклонена (§4)
+    M:            {prefix: M,   range: [1, 9]}
+    id_numeric:   {prefix: id_, range: [1, 11],  zero_pad: 2}
+    id_categorical: {prefix: id_, range: [12, 38], zero_pad: 2}
+
+  numeric:
+    - TransactionAmt
+    - TransactionAmtLog
+    - TransactionNDecimal
+    - dist1
+    - dist2
+    - family: C
+    - family: V
+    - family: id_numeric
+    # D-колонки добавляются согласно d_features.resolution ниже
+
+  categorical:
+    - ProductCD
+    - card1
+    - card2
+    - card3
+    - card4
+    - card5
+    - card6
+    - addr1
+    - addr2
+    - P_emaildomain
+    - R_emaildomain
+    - DeviceType
+    - DeviceInfo
+    - TransactionHour       # подаётся и как числовой, и как категориальный (§2)
+    - TransactionDoW
+    - hasIdentity
+    - family: M
+    - family: id_categorical
+    # производные (02_feature_eda, §5)
+    - P_EmailSuffix
+    - P_EmailProviderGroup
+    - R_EmailSuffix
+    - R_EmailProviderGroup
+    - DeviceFamily
+    - BrowserFamily
+
+  numeric_extra:
+    - TransactionHour       # числовая копия
+
+# ---------------------------------------------------------------------
+# D-признаки: резолюция версий (02_feature_eda, §3)
+# ---------------------------------------------------------------------
+d_features:
+  # ВНИМАНИЕ: значения ниже — ОЖИДАНИЕ ПО EDA (плейсхолдер).
+  # Заменить фактическими после прогона AV (задача 1 бэклога, §7);
+  # артефакт AV: reports/av_d_features.csv
+  status: pending_av
+  resolution:          # raw | norm | excluded
+    D1:  norm
+    D2:  raw           # статус неясен по EDA — решит AV
+    D3:  raw
+    D4:  norm
+    D5:  raw
+    D6:  raw
+    D7:  raw
+    D8:  raw
+    D9:  excluded      # дубликат TransactionHour
+    D10: norm
+    D11: norm
+    D12: raw
+    D13: raw
+    D14: raw
+    D15: norm
+
+# ---------------------------------------------------------------------
+# Производные категориальные: словари мапинга (02_feature_eda, §5).
+# Заморожены для всех веток.
+# ---------------------------------------------------------------------
+derived:
+  provider_groups:
+    gmail: google
+    googlemail: google
+    hotmail: microsoft
+    outlook: microsoft
+    live: microsoft
+    msn: microsoft
+    yahoo: yahoo
+    ymail: yahoo
+    rocketmail: yahoo
+    icloud: apple
+    me: apple
+    mac: apple
+    aol: aol
+    aim: aol
+  device_rules:        # [подстрока, семейство], проверяются по порядку
+    - [windows, windows]
+    - [ios device, ios]
+    - [macos, macos]
+    - [sm-, samsung]
+    - ["sm ", samsung]
+    - [samsung, samsung]
+    - [gt-, samsung]
+    - [moto, motorola]
+    - [xt1, motorola]
+    - [huawei, huawei]
+    - [ale-, huawei]
+    - [hi6, huawei]
+    - [lg-, lg]
+    - ["rv:", firefox_ua]
+    - [trident, ie]
+    - [pixel, google]
+    - [nexus, google]
+    - [htc, htc]
+    - [asus, asus]
+    - [lenovo, lenovo]
+    - [linux, linux]
+
+# ---------------------------------------------------------------------
+# Модель (заморожено после одного сеанса лёгкого тюнинга)
+# ---------------------------------------------------------------------
+model:
+  type: catboost
+  task_type: CPU           
+  params:
+    loss_function: Logloss
+    eval_metric: AUC
+    depth: 8
+    learning_rate: 0.05
+    iterations: 5000
+    early_stopping_rounds: 200
+    random_seed: 42
+    has_time: true
+  # переобучение на всём train для сабмита: iterations из early stopping × множитель
+  full_train_iterations_multiplier: 1.15
+
+# ---------------------------------------------------------------------
+# Валидация (02_feature_eda, §6) — идентична во всех ветках
+# ---------------------------------------------------------------------
+validation:
+  holdout_quantile: 0.8       # последние 20% train по времени
+  month_block_days: 30
+  cv_skip_first_blocks: 3     # фолды: train на блоках <= b, valid на b+1, b из blocks[3:-1]
+
+# ---------------------------------------------------------------------
+# Adversarial validation по D-колонкам (задача 1 бэклога)
+# ---------------------------------------------------------------------
+adversarial_validation:
+  auc_pass_threshold: 0.55    # AUC <= порога => версия допущена
+  model_params:               # лёгкая модель, однопризнаковый классификатор train-vs-test
+    depth: 4
+    iterations: 200
+    learning_rate: 0.1
+    random_seed: 42
+
+# ---------------------------------------------------------------------
+# Дополнительные признаки ветки. В base пуст; переопределяется
+# в baseline.yaml (остаётся пустым), bloom.yaml, exact.yaml.
+# ---------------------------------------------------------------------
+extra_features: {}
