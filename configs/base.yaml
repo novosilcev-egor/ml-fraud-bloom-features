@@ -15,12 +15,17 @@ paths:
   test_identity: data/test_identity.csv
   reports_dir: reports
   experiments_log: reports/experiments.md
+  submissions_dir: reports/submissions
+  runs_dir: reports/runs
 
 # ---------------------------------------------------------------------
 # Признаки
 # ---------------------------------------------------------------------
 features:
   target: isFraud
+
+  # NaN в категориальных колонках → это значение (CatBoost не принимает NaN в cat_features)
+  categorical_fill: missing
 
   # Служебные колонки: используются для сплитов и оконных построений,
   # ЗАПРЕЩЕНЫ как признаки модели. Тест на утечку читает этот список.
@@ -44,6 +49,7 @@ features:
     - TransactionAmt
     - TransactionAmtLog
     - TransactionNDecimal
+    - TransactionHour       # числовая версия (подаётся и как числовой, и как категориальный, §2)
     - dist1
     - dist2
     - family: C
@@ -65,7 +71,7 @@ features:
     - R_emaildomain
     - DeviceType
     - DeviceInfo
-    - TransactionHour       # подаётся и как числовой, и как категориальный (§2)
+    - TransactionHourCat    # строковая копия TransactionHour (подаётся и как числовой, и как категориальный, §2)
     - TransactionDoW
     - hasIdentity
     - family: M
@@ -78,9 +84,6 @@ features:
     - DeviceFamily
     - BrowserFamily
 
-  numeric_extra:
-    - TransactionHour       # числовая копия
-
 # ---------------------------------------------------------------------
 # D-признаки: резолюция версий (02_feature_eda, §3)
 # Источник: reports/av_d_features.csv
@@ -92,7 +95,7 @@ d_features:
     D2:  raw           # 0.533 / 0.723
     D3:  raw           # 0.530 / 0.882
     D4:  excluded      # 0.625 / 0.819
-    D5:  excluded      # 0.550 / 0.837 
+    D5:  excluded      # 0.5502 / 0.837 
     D6:  excluded      # 0.565 / 0.636
     D7:  raw           # 0.527 / 0.573
     D8:  raw           # 0.516 / 0.583
