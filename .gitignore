@@ -221,3 +221,8 @@ data/*
 # Test configuration files
 pytest.ini
 tests/
+
+# Прогоны пайплайна: сабмиты и метрики по run_id (большие, невоспроизводимые файлы;
+# сводка каждого прогона фиксируется вручную в reports/experiments.md)
+reports/submissions/
+reports/runs/
