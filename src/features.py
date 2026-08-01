@@ -27,7 +27,14 @@ def add_time_features(df: pd.DataFrame) -> pd.DataFrame:
     hour = (df["TransactionDT"] // SECONDS_PER_HOUR) % HOURS_PER_DAY
     day = df["TransactionDT"] // SECONDS_PER_DAY
     dow = (day % DAYS_PER_WEEK).astype(int)
-    new_cols = pd.DataFrame({"TransactionHour": hour, "TransactionDay": day, "TransactionDoW": dow})
+    new_cols = pd.DataFrame(
+        {
+            "TransactionHour": hour,
+            "TransactionHourCat": hour.astype(int).map(str).astype(object),
+            "TransactionDay": day,
+            "TransactionDoW": dow,
+        }
+    )
     return pd.concat([df, new_cols], axis=1)
 
 

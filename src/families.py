@@ -24,20 +24,3 @@ def get_forbidden_columns(config: dict) -> list[str]:
 
 def get_d_columns(config: dict) -> list[str]:
     return list(config["d_features"]["resolution"].keys())
-
-
-def get_active_d_columns(config: dict) -> list[str]:
-    resolution = config["d_features"]["resolution"]
-    return [col for col, res in resolution.items() if res != "excluded"]
-
-
-def candidate_feature_columns(config: dict) -> list[str]:
-    features = config["features"]
-    columns = []
-    columns.extend(expand_feature_list(features["numeric"], config))
-    columns.extend(expand_feature_list(features["categorical"], config))
-    columns.extend(expand_feature_list(features.get("numeric_extra", []), config))
-    for col in get_active_d_columns(config):
-        columns.append(col)
-        columns.append(col + "Norm")
-    return columns

@@ -19,6 +19,13 @@ def merge(transaction_df: pd.DataFrame, identity_df: pd.DataFrame) -> pd.DataFra
     return pd.concat([transaction_df, identity_aligned, has_identity], axis=1)
 
 
+def sort_by_transaction_dt(df: pd.DataFrame) -> pd.DataFrame:
+    """has_time=True (CatBoost) требует строки, отсортированные по времени.
+    mergesort — стабильная сортировка: одновременные транзакции сохраняют исходный
+    порядок, а не переставляются произвольно."""
+    return df.sort_values("TransactionDT", kind="mergesort").reset_index(drop=True)
+
+
 def load_split(config: dict, split: str) -> pd.DataFrame:
     if split not in _VALID_SPLITS:
         raise ValueError(f"split must be one of {_VALID_SPLITS}, got {split!r}")
