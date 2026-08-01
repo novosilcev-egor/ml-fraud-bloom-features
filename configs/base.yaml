@@ -172,9 +172,11 @@ model:
 # Валидация (02_feature_eda, §6) — идентична во всех экспериментах
 # ---------------------------------------------------------------------
 validation:
-  holdout_quantile: 0.8       # последние 20% train по времени
+  holdout_quantile: 0.8
   month_block_days: 30
-  cv_skip_first_blocks: 3     # фолды: train на блоках <= b, valid на b+1, b из blocks[3:-1]
+  drop_incomplete_last_block: true   # последний блок короче month_block_days отбрасывается
+  cv_skip_first_blocks: 2            # фолды валидируются на блоках 3, 4, 5
+  min_valid_rows: 30000              # фолд с меньшим valid отбрасывается с предупреждением
 
 # ---------------------------------------------------------------------
 # Adversarial validation по D-колонкам (задача 1 бэклога)
